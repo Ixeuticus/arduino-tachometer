@@ -1,0 +1,20 @@
+:Author: Ixeuticus
+:Email: {AuthorEmail}
+:Date: 29/08/2019
+:Revision: version1
+:License: Public Domain
+
+= Project: VTEC conroller (DIGITAL Tachometer)
+
+Vtec controller
+
+Signal from distributer linked to pin 4 & through 160ohm resistor GND
+
+  Distributer ---{220ohm}-----pin4
+                          \--{160ohm}---GND pin
+
+LEDs: common ground pin, 220ohm on positives, pins 9, 10, 11, 12
+
+Vtec control pin 7
+
+Tachometer output:
