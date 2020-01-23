@@ -17,4 +17,4 @@ LEDs: common ground pin, 220ohm on positives, pins 9, 10, 11, 12
 
 Vtec control pin 7
 
-Tachometer output:
+Tachometer output: 7 segment, 4 digit led display
