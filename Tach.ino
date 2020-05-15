@@ -8,7 +8,7 @@
 TM1637Display display(CLK, DIO);
 
 /*
-const uint8_t SEG_DONE[] = {
+  const uint8_t SEG_DONE[] = {
 	SEG_B | SEG_C | SEG_D | SEG_E | SEG_G,           // d
 	SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F,   // O
 	SEG_C | SEG_E | SEG_G,                           // n
@@ -17,59 +17,59 @@ const uint8_t SEG_DONE[] = {
 */
 
 
-  uint8_t data[] = { 0xff, 0xff, 0xff, 0xff };
-  uint8_t blank[] = { 0x00, 0x00, 0x00, 0x00 };
+uint8_t data[] = { 0xff, 0xff, 0xff, 0xff };
+uint8_t blank[] = { 0x00, 0x00, 0x00, 0x00 };
 
 
 /*
- * SIMPLE ARDUINO CAR TACHOMETER
- */
+   SIMPLE ARDUINO CAR TACHOMETER
+*/
 
 const int DATA_PIN            = 4;
-const int LED_GROUND_PIN      = 8;
+const int LED_GROUND_PIN      = 8; // pin to use as negative for LEDs
 
 // Vtec solenoid control pin (relay control)
-const int VTEC_PIN            = 7;
+const int VTEC_PIN            = 3;
 
-const int PINS_COUNT          = 4;
-const int LED_PINS[PINS_COUNT]        = {9,    10,   11,   12};
-const int LED_SWITCH_RPM[PINS_COUNT]  = {1000, 1500, 2000, 2500};
-const int REV_LIMITER_RPM             = 5800;
-const int VTEC_ON_RPM         = 3500;
+const int PINS_COUNT          = 4; // set ammount of LEDs
+const int LED_PINS[PINS_COUNT]        = {9,    10,   11,   12}; // pins accociated to LEDs
+const int LED_SWITCH_RPM[PINS_COUNT]  = {1000, 1500, 2000, 2500}; // rpm at which turn on LED
+const int REV_LIMITER_RPM             = 3000; // turns on all LEDs "Shift light"
+const int VTEC_RPM                 = 3500; // rpm at which engage VTEC relay
 
 const int NUMBER_OF_CYLINDERS = 4;
 const int LED_UPDATE_INTERVAL = 200;
 
 /*
- * Last led state update time in ms, used to calculate the time from last update
- */
+   Last led state update time in ms, used to calculate the time from last update
+*/
 unsigned long lastUpdateTime  = 0;
 
 /*
- * Amount of spark fires in a single interval
- */
+   Amount of spark fires in a single interval
+*/
 volatile int sparkFireCount            = 0;
 
 /*
- * Rpm value from last update
- * Used to average the last 2 rpms for smoother output
- */
+   Rpm value from last update
+   Used to average the last 2 rpms for smoother output
+*/
 int lastRpmValue              = 0;
 
 /*
- * Blinking rev limiter state
- */
-bool revLimiterOn             = ;
+   Blinking rev limiter state
+*/
+bool revLimiterOn             = true;
 
 /*
- *
- */
+
+*/
 void incrementRpmCount () {
   sparkFireCount++;
 }
 
 /*
- * Turns all leds on or off
+   Turns all leds on or off
 */
 void setGlobalState(bool state) {
   for (int i = 0; i < PINS_COUNT; i++) {
@@ -78,11 +78,12 @@ void setGlobalState(bool state) {
 }
 
 /*
- * Turn on leds, based on input rpm
+   Turn on leds, based on input rpm
 */
 void setLedState(int rpm) {
   setGlobalState(LOW);
-
+  digitalWrite(VTEC_PIN,LOW);
+  
   // If rpm is over REV_LIMITER_RPM, all leds should be blinking at 200ms interval
   if (rpm > REV_LIMITER_RPM) {
     if (revLimiterOn) {
@@ -96,28 +97,23 @@ void setLedState(int rpm) {
   }
 
   for (int i = 0; i < PINS_COUNT; i++) {
-      if (rpm > LED_SWITCH_RPM[i]) {
-          digitalWrite(LED_PINS[i], HIGH);
-      }
+    if (rpm > LED_SWITCH_RPM[i]) {
+      digitalWrite(LED_PINS[i], HIGH);
+    }
   }
-} 
-
-/*
- * Turns on VTEC solenoid based on VTEC_ON_RPM set
- */
-void vtec(int rpm) {
-  if (rpm > VTEC_ON_RPM) {
-    digitalWrite(VTEC_PIN, HIGH);
-  } else {
-    digitalWrite(VTEC_PIN, LOW);
+  
+  //-----------------------------------------------------
+  if (rpm < VTEC_RPM) {
+    digitalWrite(VTEC_PIN,HIGH);
   }
+  
 }
 
 /*
- * Defines led pins as output,
- * turns all leds on for 500ms when started
- * attach to serial if available
- */
+   Defines led pins as output,
+   turns all leds on for 500ms when started
+   attach to serial if available
+*/
 void setup() {
   // Define all led pins as outputs
   for (int i = 0; i < PINS_COUNT; i++) {
@@ -134,6 +130,8 @@ void setup() {
   pinMode(DATA_PIN, INPUT_PULLUP);
   attachInterrupt(1, incrementRpmCount, FALLING);
   Serial.begin(9600);
+  
+  pinMode(VTEC_PIN,OUTPUT);
 }
 
 // 4 stroke engine fires every spark in 2 revolutions
@@ -159,11 +157,12 @@ void loop() {
     sparkFireCount = 0;
     lastUpdateTime = millis();
     lastRpmValue = currentRpm;
-    
-    // Output rpm value on screen 
+
+    // Output rpm value on screen
     display.setBrightness(0x0f);
     display.showNumberDec(averagedRpm);
     //delay(500);
-  
+
   }
+  
 }
