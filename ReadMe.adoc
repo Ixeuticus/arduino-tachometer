@@ -11,7 +11,7 @@ Vtec controller
 Signal from distributer linked to pin 4 & through 160ohm resistor GND
 
   Distributer ---{220ohm}-----pin4
-                          \--{160ohm}---GND pin
+                          \--{100ohm}---GND pin
 
 LEDs:
 Common ground pin, 220ohm on positives, pins 9, 10, 11, 12
